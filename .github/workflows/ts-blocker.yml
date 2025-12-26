@@ -1,19 +1,72 @@
-name: TypeScript/JavaScript Blocker
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# SPDX-FileCopyrightText: 2025 Jonathan D.A. Jewell
+
+name: Rhodium Standard Policy Enforcement
+
 on: [push, pull_request]
+
 jobs:
-  check:
+  policy-check:
+    name: Enforce Language & Tool Policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
-      - name: Block new TypeScript/JavaScript
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Block TypeScript/JavaScript
         run: |
           NEW_TS=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -E '\.(ts|tsx)$' | grep -v '\.gen\.' || true)
           NEW_JS=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -E '\.(js|jsx)$' | grep -v '\.res\.js$' | grep -v '\.gen\.' | grep -v 'node_modules' || true)
-          
+
           if [ -n "$NEW_TS" ] || [ -n "$NEW_JS" ]; then
-            echo "❌ New TS/JS files detected. Use ReScript instead."
-            [ -n "$NEW_TS" ] && echo "$NEW_TS"
-            [ -n "$NEW_JS" ] && echo "$NEW_JS"
+            echo "::error::New TypeScript/JavaScript files detected. Use ReScript instead."
+            [ -n "$NEW_TS" ] && echo "TypeScript files: $NEW_TS"
+            [ -n "$NEW_JS" ] && echo "JavaScript files: $NEW_JS"
             exit 1
           fi
-          echo "✅ ReScript policy enforced"
+          echo "ReScript policy: PASSED"
+
+      - name: Block Makefiles
+        run: |
+          MAKEFILES=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -iE '(^|/)Makefile$|^GNUmakefile$|\.mk$' || true)
+
+          if [ -n "$MAKEFILES" ]; then
+            echo "::error::Makefiles detected. Use justfile instead."
+            echo "Files: $MAKEFILES"
+            exit 1
+          fi
+          echo "Makefile policy: PASSED"
+
+      - name: Block npm/bun/yarn/pnpm lockfiles
+        run: |
+          LOCKFILES=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -E '(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb|bun\.lock)$' || true)
+
+          if [ -n "$LOCKFILES" ]; then
+            echo "::error::Package manager lockfiles detected. Use Deno instead."
+            echo "Files: $LOCKFILES"
+            exit 1
+          fi
+          echo "Deno-only policy: PASSED"
+
+      - name: Block Go files
+        run: |
+          GO_FILES=$(git diff --name-only --diff-filter=A HEAD~1 2>/dev/null | grep -E '\.go$' || true)
+
+          if [ -n "$GO_FILES" ]; then
+            echo "::error::Go files detected. Use Rust instead."
+            echo "Files: $GO_FILES"
+            exit 1
+          fi
+          echo "No-Go policy: PASSED"
+
+      - name: Policy Summary
+        run: |
+          echo "========================================"
+          echo "Rhodium Standard Policy: ALL CHECKS PASSED"
+          echo "========================================"
+          echo "- No TypeScript (use ReScript)"
+          echo "- No raw JavaScript (except .res.js)"
+          echo "- No Makefiles (use justfile)"
+          echo "- No npm/yarn/pnpm/bun (use Deno)"
+          echo "- No Go (use Rust)"
