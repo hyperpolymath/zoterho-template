@@ -47,7 +47,7 @@ The resulting .xpi file and the update manifest will be placed in the build/ dir
 ├── JUSTFILE                # Primary build automation runner.
 ├── README.adoc             # This document.
 ├── cookbook.adoc           # Comprehensive list of all 'just' recipes.
-├── oil-shell/build.oil     # The core build script (replaces 'make-zips').
+├── valence-shell/build.vs     # The core build script (replaces 'make-zips').
 ├── config/                 # Nickel source files.
 │   ├── Manifest.nix        # Zotero manifest.json source.
 │   └── Updates.nix         # Zotero update JSON source.
