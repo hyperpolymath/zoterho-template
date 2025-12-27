@@ -10,11 +10,11 @@ let hash | default = "sha256:placeholder" in
 
 let updates = {
   addons = {
-    "zoterho-template@hyperpolymath.io" = {
+    "zoterho-template@metadatstastician.art" = {
       updates = [
         {
           version = version,
-          update_link = "https://github.com/hyperpolymath/zoterho-template/releases/download/v${version}/zoterho-template-${version}.xpi",
+          update_link = "https://github.com/metadatstastician/zoterho-template/releases/download/v${version}/zoterho-template-${version}.xpi",
           update_hash = hash,
           applications = {
             zotero = {

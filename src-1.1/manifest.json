@@ -1,15 +1,15 @@
 {
 	"manifest_version": 2,
-	"name": "Make It Red",
+	"name": "ZoteRho Template",
 	"version": "1.1",
-	"description": "Makes everything red",
-	"homepage_url": "https://github.com/zotero/make-it-red",
+	"description": "A sample Zotero plugin demonstrating the Rhodium Standard",
+	"homepage_url": "https://github.com/metadatstastician/zoterho-template",
 	"applications": {
 		"zotero": {
-			"id": "make-it-red@example.com",
-			"update_url": "https://zotero-download.s3.amazonaws.com/tmp/make-it-red/updates-1.1.json",
-			"strict_min_version": "7.0",
-			"strict_max_version": "7.1.*"
+			"id": "zoterho-template@metadatstastician.art",
+			"update_url": "https://metadatstastician.art/zoterho-template/updates-1.1.json",
+			"strict_min_version": "6.0",
+			"strict_max_version": "6.99"
 		}
 	}
 }
