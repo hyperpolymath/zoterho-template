@@ -51,6 +51,11 @@ temp/
 src-*/manifest.json
 src-*/updates-*.json
 
+# Generated JS files copied during packaging
+src-*/bootstrap.js
+src-*/MakeItRed.js
+src-*/RhodiumColorizer.js
+
 # XPI packages (build artifacts)
 *.xpi
 
