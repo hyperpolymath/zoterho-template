@@ -122,13 +122,36 @@ validate-nickel:
 
 # --- Package ---
 
+# Copy compiled ReScript files to src-2.0 for packaging
+copy-compiled:
+    @echo "Copying compiled ReScript files to src-{{target_version}}..."
+    @# Copy bootstrap.res.js as bootstrap.js (Zotero expects this name)
+    @if [ -f bootstrap.res.js ]; then \
+        cp bootstrap.res.js src-{{target_version}}/bootstrap.js; \
+        echo "  Copied bootstrap.js"; \
+    fi
+    @# Copy ZoteRhoTemplate.res.js as MakeItRed.js (referenced by bootstrap)
+    @if [ -f ZoteRhoTemplate.res.js ]; then \
+        cp ZoteRhoTemplate.res.js src-{{target_version}}/MakeItRed.js; \
+        echo "  Copied MakeItRed.js"; \
+    fi
+    @# Copy RhodiumColorizer if it exists
+    @if [ -f RhodiumColorizer.res.js ]; then \
+        cp RhodiumColorizer.res.js src-{{target_version}}/RhodiumColorizer.js; \
+        echo "  Copied RhodiumColorizer.js"; \
+    fi
+
 # Create XPI package
-package: build compile-nickel
+package: build compile-nickel copy-compiled
     @echo "Creating XPI package..."
     @mkdir -p build
-    @cd src-{{target_version}} && zip -r ../build/zoterho-template-{{target_version}}.xpi . \
-        -x "*.ts" -x "*.tsx" -x "*.res" -x "*.resi" -x ".git/*" -x "node_modules/*"
+    @# Use reproducible zip flags: -X removes extra fields, sorted file list
+    @cd src-{{target_version}} && find . -type f \
+        ! -name "*.ts" ! -name "*.tsx" ! -name "*.res" ! -name "*.resi" \
+        ! -path "./.git/*" ! -path "./node_modules/*" \
+        | sort | zip -X -@ ../build/zoterho-template-{{target_version}}.xpi
     @echo "Package created: build/zoterho-template-{{target_version}}.xpi"
+    @sha256sum build/zoterho-template-{{target_version}}.xpi
 
 # Generate update JSON with hash
 generate-update-json:
@@ -197,3 +220,133 @@ setup:
 # Full CI pipeline
 ci: setup quality build validate
     @echo "CI pipeline complete!"
+
+# --- 1-Click Reproducible Build ---
+
+# Bootstrap: setup environment from scratch
+bootstrap:
+    @echo "=== ZoteRho Template Bootstrap ==="
+    @echo "Checking required tools..."
+    @# Check Deno
+    @if ! command -v deno >/dev/null 2>&1; then \
+        echo "ERROR: Deno not found. Install from https://deno.land/"; \
+        echo "  curl -fsSL https://deno.land/install.sh | sh"; \
+        exit 1; \
+    fi
+    @echo "  ✓ Deno $(deno --version | head -n1 | cut -d' ' -f2)"
+    @# Check just
+    @if ! command -v just >/dev/null 2>&1; then \
+        echo "ERROR: just not found. Install from https://just.systems/"; \
+        echo "  cargo install just  OR  brew install just"; \
+        exit 1; \
+    fi
+    @echo "  ✓ just $(just --version | cut -d' ' -f2)"
+    @# Check zip
+    @if ! command -v zip >/dev/null 2>&1; then \
+        echo "ERROR: zip not found. Install via your package manager."; \
+        exit 1; \
+    fi
+    @echo "  ✓ zip available"
+    @# Optional: nickel
+    @if command -v nickel >/dev/null 2>&1; then \
+        echo "  ✓ nickel $(nickel --version 2>/dev/null || echo 'available')"; \
+    else \
+        echo "  ○ nickel not found (optional, for config generation)"; \
+    fi
+    @echo ""
+    @echo "Caching dependencies..."
+    @deno cache deno.json 2>/dev/null || true
+    @echo ""
+    @echo "=== Bootstrap Complete ==="
+    @echo "Run 'just reproducible' for 1-click build"
+
+# 1-click reproducible build: bootstrap → build → package
+reproducible: bootstrap
+    @echo ""
+    @echo "=== 1-Click Reproducible Build ==="
+    @echo ""
+    @# Step 1: Policy validation
+    @echo "[1/4] Validating policy compliance..."
+    @./mustfile validate
+    @echo ""
+    @# Step 2: Build ReScript
+    @echo "[2/4] Building ReScript source..."
+    @deno run --allow-run --allow-read --allow-write npm:rescript build
+    @echo ""
+    @# Step 3: Compile Nickel configs (if available)
+    @echo "[3/4] Compiling configurations..."
+    @just compile-nickel
+    @echo ""
+    @# Step 4: Package XPI
+    @echo "[4/4] Creating XPI package..."
+    @just copy-compiled
+    @mkdir -p build
+    @cd src-{{target_version}} && find . -type f \
+        ! -name "*.ts" ! -name "*.tsx" ! -name "*.res" ! -name "*.resi" \
+        ! -path "./.git/*" ! -path "./node_modules/*" \
+        | sort | zip -X -@ ../build/zoterho-template-{{target_version}}.xpi
+    @echo ""
+    @echo "=== Build Complete ==="
+    @echo ""
+    @echo "Package: build/zoterho-template-{{target_version}}.xpi"
+    @sha256sum build/zoterho-template-{{target_version}}.xpi
+    @echo ""
+    @echo "Install in Zotero:"
+    @echo "  just install-zotero"
+    @echo "  OR: Tools → Add-ons → Install Add-on From File..."
+
+# --- Zotero Installation ---
+
+# Detect Zotero profile directory
+zotero-profile-dir := if os() == "macos" { "~/Library/Application Support/Zotero/Profiles" } else if os() == "windows" { "~/AppData/Roaming/Zotero/Zotero/Profiles" } else { "~/.zotero/zotero" }
+
+# Install XPI to Zotero (requires profile detection)
+install-zotero:
+    @echo "Installing to Zotero..."
+    @if [ ! -f build/zoterho-template-{{target_version}}.xpi ]; then \
+        echo "XPI not found. Run 'just reproducible' first."; \
+        exit 1; \
+    fi
+    @# Find Zotero extensions directory
+    @PROFILE_BASE="{{zotero-profile-dir}}"; \
+    PROFILE_BASE=$$(eval echo "$$PROFILE_BASE"); \
+    if [ -d "$$PROFILE_BASE" ]; then \
+        PROFILE=$$(ls -1 "$$PROFILE_BASE" 2>/dev/null | grep -E '\.default$$|default-release$$' | head -n1); \
+        if [ -n "$$PROFILE" ]; then \
+            EXT_DIR="$$PROFILE_BASE/$$PROFILE/extensions"; \
+            mkdir -p "$$EXT_DIR"; \
+            cp build/zoterho-template-{{target_version}}.xpi "$$EXT_DIR/make-it-red@example.com.xpi"; \
+            echo "Installed to: $$EXT_DIR/make-it-red@example.com.xpi"; \
+            echo ""; \
+            echo "Restart Zotero to load the plugin."; \
+        else \
+            echo "Could not find Zotero default profile."; \
+            echo "Manual install: Tools → Add-ons → Install Add-on From File..."; \
+            echo "Select: build/zoterho-template-{{target_version}}.xpi"; \
+        fi; \
+    else \
+        echo "Zotero profile directory not found at: $$PROFILE_BASE"; \
+        echo "Manual install: Tools → Add-ons → Install Add-on From File..."; \
+        echo "Select: build/zoterho-template-{{target_version}}.xpi"; \
+    fi
+
+# Open Zotero with the XPI for manual install
+install-zotero-manual:
+    @echo "Opening XPI for manual installation..."
+    @if [ ! -f build/zoterho-template-{{target_version}}.xpi ]; then \
+        echo "XPI not found. Run 'just reproducible' first."; \
+        exit 1; \
+    fi
+    @echo ""
+    @echo "To install in Zotero:"
+    @echo "  1. Open Zotero"
+    @echo "  2. Go to: Tools → Add-ons"
+    @echo "  3. Click gear icon → Install Add-on From File..."
+    @echo "  4. Select: $(pwd)/build/zoterho-template-{{target_version}}.xpi"
+    @echo ""
+    @# Try to open file manager at build directory
+    @if command -v xdg-open >/dev/null 2>&1; then \
+        xdg-open build/ 2>/dev/null || true; \
+    elif command -v open >/dev/null 2>&1; then \
+        open build/ 2>/dev/null || true; \
+    fi

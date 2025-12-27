@@ -11,21 +11,63 @@ A sample Zotero 7+ plugin demonstrating the Rhodium Standard for FOSS developmen
 
 This project is fully compliant with WCAG 2.3 AAA, prioritising accessibility and dependability in its structure.
 
-== 🚀 Quick Start (Build)
+== 1-Click Reproducible Build
 
-This project uses the just command runner for all automation. Please ensure you have just installed alongside rescript (npm) and nickel (package manager).
+This project provides a single command to bootstrap, build, and package the Zotero plugin:
 
 [source,bash]
+----
+just reproducible
+----
 
-Ensure Rescript and Nickel are installed
+This command:
 
-just setup
+1. **Bootstrap**: Verifies required tools (Deno, just, zip) and caches dependencies
+2. **Validate**: Runs policy compliance checks (no TypeScript, Deno-only, security)
+3. **Build**: Compiles ReScript source to JavaScript
+4. **Package**: Creates `build/zoterho-template-2.0.xpi` with SHA256 hash
 
-Build the latest XPI package (v2.0)
+=== Prerequisites
 
-just build
+* https://deno.land/[Deno] - JavaScript/TypeScript runtime
+* https://just.systems/[just] - Command runner
+* `zip` - Standard compression tool
+* https://nickel-lang.org/[Nickel] (optional) - For configuration generation
 
-The resulting .xpi file and the update manifest will be placed in the build/ directory.
+=== Install to Zotero
+
+After building:
+
+[source,bash]
+----
+# Automatic install (detects Zotero profile)
+just install-zotero
+
+# Or manual install
+just install-zotero-manual
+----
+
+Manual install: In Zotero, go to Tools -> Add-ons -> Install Add-on From File... and select `build/zoterho-template-2.0.xpi`.
+
+=== Other Commands
+
+[source,bash]
+----
+# View all available recipes
+just
+
+# Build only (skip bootstrap)
+just package
+
+# Watch mode for development
+just watch
+
+# Run policy validation
+just validate
+
+# Full CI pipeline
+just ci
+----
 
 == ⚙️ Architecture and Technology Stack
 
@@ -39,85 +81,49 @@ The resulting .xpi file and the update manifest will be placed in the build/ dir
 |Compliance |WCAG 2.3 AAA |Ensured for Zotero's preference pane (XHTML/HTML) and any new UI elements.
 |===
 
-== 📁 Project Structure (src-2.0 Focus)
+== Project Structure
 
 [source,text]
-
+----
 .
-├── JUSTFILE                # Primary build automation runner.
-├── README.adoc             # This document.
-├── cookbook.adoc           # Comprehensive list of all 'just' recipes.
-├── valence-shell/build.vs     # The core build script (replaces 'make-zips').
-├── config/                 # Nickel source files.
-│   ├── Manifest.nix        # Zotero manifest.json source.
-│   └── Updates.nix         # Zotero update JSON source.
-├── src-2.0/                # Zotero 7+ codebase (Pure Bootstrapped).
-│   ├── Bootstrap.res       # Rescript: Plugin entry point logic (compiles to bootstrap.js).
-│   ├── MakeItRed.res       # Rescript: Core DOM and menu manipulation (compiles to MakeItRed.js).
-│   ├── prefs.ts            # Zotero preference defaults (kept as simple Mozilla pref file).
-│   ├── style.css           # Zotero styling.
-│   └── ...
+├── justfile                # Primary build automation (just command runner)
+├── mustfile                # Policy enforcement script
+├── deno.json               # Deno package manager configuration
+├── rescript.json           # ReScript compiler configuration
+├── README.adoc             # This document
+│
+├── bootstrap.res           # ReScript: Plugin entry point (-> bootstrap.js)
+├── ZoteRhoTemplate.res     # ReScript: Core logic (-> MakeItRed.js)
+├── RhodiumColorizer.res    # ReScript: Color utilities
+│
+├── config/                 # Nickel configuration sources
+│   ├── manifest.ncl        # Generates manifest.json
+│   ├── updates.ncl         # Generates updates.json
+│   └── policy.ncl          # Hyperpolymath policy definition
+│
+├── src-2.0/                # Zotero 7+ plugin contents (packaged into XPI)
+│   ├── manifest.json       # Generated from config/manifest.ncl
+│   ├── style.css           # Plugin styling
+│   └── locale/en-US/       # Fluent localization
+│
+└── build/                  # Build output (gitignored)
+    └── zoterho-template-2.0.xpi
+----
 
-== 📜 Shell Script Reference
+== Policy Enforcement
 
-The primary build orchestration script is written in Oil Shell. The full, executable script is available in oil-shell/build.oil.
+This project enforces the Hyperpolymath Rhodium Standard:
 
-[source,oil]
+* **No TypeScript** - Use ReScript instead
+* **No npm/yarn/pnpm/bun** - Use Deno only
+* **No Makefiles** - Use justfile
+* **HTTPS only** - No HTTP URLs
+* **No hardcoded secrets**
 
-#!/usr/bin/env oil
+Policy is enforced by:
 
-... (Script content summary) ...
-
-proc main {
-# ...
-ensure_build_dir
-just 'compile-rescript' --TARGET-VERSION ${TARGET_VERSION}
-just 'compile-nickel' --TARGET-VERSION ${TARGET_VERSION}
-# ... zipping process ...
-just 'generate-update-json' --TARGET-VERSION ${TARGET_VERSION}
-# ...
-}
-
-... (Full content of oil-shell/build.oil is available in that file) ...
-
-For convenience, here are the wrappers for your preferred shells.
-
-Note: These scripts merely execute the build.oil script or the just command, as that is the source of truth.
-
-[source,bash]
-
-#!/usr/bin/env bash
-
-BASH SCRIPT
-
-Execute the Oil script via 'oil' interpreter, assuming it's installed.
-
-set -euo pipefail
-echo "Executing build using Oil Shell..."
-oil ./oil-shell/build.oil "$@"
-
-[source,zsh]
-
-#!/usr/bin/env zsh
-
-ZSH SCRIPT
-
-Execute the Oil script via 'oil' interpreter.
-
-set -euo pipefail
-echo "Executing build using Oil Shell..."
-oil ./oil-shell/build.oil "$@"
-
-[source,nushell]
-
-#!/usr/bin/env nushell
-
-NUSHELL SCRIPT
-
-Execute the Justfile recipe.
-
-echo "Executing build using Justfile..."
-just build $in
+1. `./mustfile validate` - Local validation
+2. `.github/workflows/ts-blocker.yml` - CI enforcement
 
 == ♿ WCAG 2.3 AAA Compliance (UI/Web)
 
@@ -137,4 +143,4 @@ h-card: The GitLab repository metadata and the LICENSE file contain the author's
 
 Decentralisation: The core software is FOSS, promoting decentralisation of the toolchain.
 
-For a complete reference of all build commands, please consult the cookbook.adoc file.
+For a complete reference of all build commands, run `just` to see available recipes.
