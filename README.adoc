@@ -110,6 +110,67 @@ just ci
     └── zoterho-template-2.0.xpi
 ----
 
+== Versioned Source Directories
+
+This template includes multiple `src-*` directories representing different Zotero plugin API generations. Use the version that matches your target Zotero release.
+
+|===
+|Directory |Zotero Version |API Style |When to Use
+
+|`src-1.0/`
+|5.x - 6.x
+|Legacy XUL overlay
+|**Archived.** For maintaining old plugins on Zotero 5/6. Uses `install.rdf`, `chrome.manifest`, XUL overlays, `.properties` localization.
+
+|`src-1.1/`
+|6.x (transitional)
+|Hybrid legacy + manifest
+|**Archived.** Bridging format with both `install.rdf` and `manifest.json`. Useful for plugins supporting both Zotero 6 and early Zotero 7.
+
+|`src-1.2/`
+|6.x - 7.0
+|Transitional bootstrapped
+|**Archived.** Late Zotero 6 / early Zotero 7 hybrid. Has `manifest.json` but retains `install.rdf` for backward compatibility.
+
+|`src-2.0/`
+|7.0+
+|Pure bootstrapped
+|**Current.** For Zotero 7+ only. Uses `manifest.json`, Fluent localization (`.ftl`), no XUL overlays. This is the active development target.
+|===
+
+=== Choosing the Right Version
+
+* **New plugins**: Always use `src-2.0/` (Zotero 7+ bootstrapped)
+* **Migrating from Zotero 6**: Start with `src-1.2/` as reference, migrate to `src-2.0/`
+* **Supporting multiple versions**: Maintain separate XPI builds from different `src-*` directories
+
+=== Key Differences
+
+[cols="1,1,1"]
+|===
+|Feature |Legacy (1.0/1.1) |Bootstrapped (2.0)
+
+|Manifest
+|`install.rdf` (RDF/XML)
+|`manifest.json` (JSON)
+
+|UI Integration
+|XUL overlays (`chrome/content/*.xul`)
+|JavaScript DOM manipulation
+
+|Localization
+|`.properties` files
+|Fluent `.ftl` files
+
+|Chrome Registration
+|`chrome.manifest`
+|Not needed (manifest.json handles it)
+
+|Plugin Entry
+|XUL overlay loading
+|`bootstrap.js` lifecycle hooks
+|===
+
 == Policy Enforcement
 
 This project enforces the Hyperpolymath Rhodium Standard:
