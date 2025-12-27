@@ -1,10 +1,12 @@
 /**
  * @file Bootstrap.res
  * @description Zotero 7 Bootstrapped Add-on entry point.
- * Replaces bootstrap.ts, calling the MakeItRed module compiled from Rescript.
+ * Calls the ZoteRhoTemplate module compiled from ReScript.
+ * SPDX-License-Identifier: MIT OR Apache-2.0
+ * SPDX-FileCopyrightText: 2025 Jonathan D.A. Jewell
  */
 
-@module("./MakeItRed.js") external makeItRed: {
+@module("./ZoteRhoTemplate.js") external zoteRhoTemplate: {
   ..
   "init": ({
     "id": string,
@@ -16,7 +18,7 @@
   "removeFromAllWindows": () => unit,
   "addToWindow": ({ "window": Js.t<'a> }) => unit,
   "removeFromWindow": ({ "window": Js.t<'a> }) => unit,
-} = "MakeItRed"
+} = "ZoteRhoTemplate"
 
 @module("zotero") @val
 external zotero: {
@@ -34,7 +36,7 @@ external zotero: {
 external services: { "scriptloader": { "loadSubScript": string => unit } } = "Services"
 
 let log = (msg: string): unit => {
-  zotero["debug"](`Make It Red: ${msg}`)
+  zotero["debug"](`ZoteRho Template: ${msg}`)
 }
 
 let install = (): unit => {
@@ -45,32 +47,32 @@ let startup = ({id, version, rootURI}: {id: string, version: string, rootURI: st
   log("Starting 2.0 (Rescript)")
 
   zotero["PreferencePanes"]["register"]({
-    pluginID: "make-it-red@example.com",
+    pluginID: "zoterho-template@metadatstastician.art",
     src: rootURI + "preferences.xhtml",
     scripts: [rootURI + "preferences.js"],
   })
 
-  // Load the main Rescript-compiled module. Note: This assumes MakeItRed.js exists.
-  services["scriptloader"]["loadSubScript"](rootURI + "MakeItRed.js")
+  // Load the main ReScript-compiled module
+  services["scriptloader"]["loadSubScript"](rootURI + "ZoteRhoTemplate.js")
 
-  makeItRed["init"]({id: id, version: version, rootURI: rootURI})
-  makeItRed["addToAllWindows"]()
+  zoteRhoTemplate["init"]({id: id, version: version, rootURI: rootURI})
+  zoteRhoTemplate["addToAllWindows"]()
 
   // Wait for the main logic to run
-  makeItRed["main"]()
+  zoteRhoTemplate["main"]()
 }
 
 let onMainWindowLoad = ({window}: {window: Js.t<'a>}): unit => {
-  makeItRed["addToWindow"]({window: window})
+  zoteRhoTemplate["addToWindow"]({window: window})
 }
 
 let onMainWindowUnload = ({window}: {window: Js.t<'a>}): unit => {
-  makeItRed["removeFromWindow"]({window: window})
+  zoteRhoTemplate["removeFromWindow"]({window: window})
 }
 
 let shutdown = (): unit => {
-  log("Shutting down 2.0 (Rescript)")
-  makeItRed["removeFromAllWindows"]()
+  log("Shutting down 2.0 (ReScript)")
+  zoteRhoTemplate["removeFromAllWindows"]()
 }
 
 let uninstall = (): unit => {

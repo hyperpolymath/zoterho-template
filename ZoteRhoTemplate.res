@@ -1,7 +1,9 @@
 /**
  * @file ZoteRhoTemplate.res
- * @description Core Zotero plugin functionality translated to Rescript.
- * RENAME: Module name updated to ZoteRhoTemplate.
+ * @description Core Zotero plugin functionality.
+ * Provides UI integration, menu items, and theme management.
+ * SPDX-License-Identifier: MIT OR Apache-2.0
+ * SPDX-FileCopyrightText: 2025 Jonathan D.A. Jewell
  */
 
 // Zotero-specific bindings (simplified for example)
@@ -40,7 +42,7 @@ let initialized: Ref<bool> = RescriptCore.ref(false)
 let addedElementIDs: Ref<array<string>> = RescriptCore.ref([])
 
 let log = (msg: string): unit => {
-  zotero["debug"](`ZoteRho-template: ${msg}`) // RENAME: Update log prefix
+  zotero["debug"](`ZoteRho Template: ${msg}`)
 }
 
 let storeAddedElement = (elem: element): unit => {
@@ -77,7 +79,7 @@ let addToWindow = (window: Js.t<'window>): unit => {
   | Some(document) =>
     // 1. Add a stylesheet link
     let link = createElement(document, "link")
-    setAttribute(link, "id", "zoterho-template-stylesheet") // RENAME: Update element ID
+    setAttribute(link, "id", "zoterho-template-stylesheet")
     setAttribute(link, "type", "text/css")
     setAttribute(link, "rel", "stylesheet")
     let uri = RescriptCore.Option.getOr(rootURI.contents, "")
@@ -172,16 +174,12 @@ let init = ({id: newId, version: newVersion, rootURI: newRootURI}: {id: string, 
 }
 
 let main = (): Js.Promise.t<unit> => {
-  let intensityPref = zotero["Prefs"]["get"]("extensions.zoterho-template.intensity", true) // RENAME: Update preference key
+  let intensityPref = zotero["Prefs"]["get"]("extensions.zoterho-template.intensity", true)
   log(`Intensity is ${%identity(intensityPref)}`)
 
   // Example of using Zotero's URL utility (translated from the old TS file)
   let host = %raw("new URL('https://foo.com/path').host")
   log(`Host is ${host}`)
-
-  // Future: Placeholder for a Rescript/GraphQL client setup
-  // let client = GraphQL.Client.make(...)
-  // let result = client.query(...)
 
   Js.Promise.resolve()
 }
@@ -195,7 +193,5 @@ let removeFromAllWindows_ = removeFromAllWindows
 let init_ = init
 let main_ = main
 
-// Use the full module for the JS output file (ZoteRhoTemplate.js)
-// This exports all functions required by the bootstrap.js
-// The names must match the external definitions in Bootstrap.res
-// NOTE: Rescript automatically generates the ZoteRhoTemplate.js file in the same directory.
+// Exports all functions required by bootstrap.res
+// ReScript generates ZoteRhoTemplate.res.js which is copied to ZoteRhoTemplate.js during packaging

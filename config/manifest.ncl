@@ -12,20 +12,15 @@ let manifest = {
 
   applications = {
     zotero = {
-      id = "zoterho-template@hyperpolymath.io",
-      update_url = "https://hyperpolymath.io/zoterho-template/updates.json",
+      id = "zoterho-template@metadatstastician.art",
+      update_url = "https://metadatstastician.art/zoterho-template/updates.json",
       strict_min_version = "7.0",
       strict_max_version = "7.99"
     }
   },
 
   author = "Jonathan D.A. Jewell <jonathan@hyperpolymath.io>",
-  homepage_url = "https://github.com/hyperpolymath/zoterho-template",
-
-  icons = {
-    "48" = "icons/icon48.png",
-    "96" = "icons/icon96.png"
-  },
+  homepage_url = "https://github.com/metadatstastician/zoterho-template",
 
   # Zotero 7+ bootstrapped plugin configuration
   bootstrap = true,

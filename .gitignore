@@ -53,8 +53,9 @@ src-*/updates-*.json
 
 # Generated JS files copied during packaging
 src-*/bootstrap.js
-src-*/MakeItRed.js
-src-*/RhodiumColorizer.js
+src-*/ZoteRhoTemplate.js
+src-*/preferences.js
+src-*/RhodiumLinter.js
 
 # XPI packages (build artifacts)
 *.xpi

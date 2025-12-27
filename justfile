@@ -130,15 +130,20 @@ copy-compiled:
         cp bootstrap.res.js src-{{target_version}}/bootstrap.js; \
         echo "  Copied bootstrap.js"; \
     fi
-    @# Copy ZoteRhoTemplate.res.js as MakeItRed.js (referenced by bootstrap)
+    @# Copy ZoteRhoTemplate.res.js as ZoteRhoTemplate.js (main plugin logic)
     @if [ -f ZoteRhoTemplate.res.js ]; then \
-        cp ZoteRhoTemplate.res.js src-{{target_version}}/MakeItRed.js; \
-        echo "  Copied MakeItRed.js"; \
+        cp ZoteRhoTemplate.res.js src-{{target_version}}/ZoteRhoTemplate.js; \
+        echo "  Copied ZoteRhoTemplate.js"; \
     fi
-    @# Copy RhodiumColorizer if it exists
-    @if [ -f RhodiumColorizer.res.js ]; then \
-        cp RhodiumColorizer.res.js src-{{target_version}}/RhodiumColorizer.js; \
-        echo "  Copied RhodiumColorizer.js"; \
+    @# Copy Preferences.res.js as preferences.js
+    @if [ -f Preferences.res.js ]; then \
+        cp Preferences.res.js src-{{target_version}}/preferences.js; \
+        echo "  Copied preferences.js"; \
+    fi
+    @# Copy RhodiumLinter if it exists
+    @if [ -f RhodiumLinter.res.js ]; then \
+        cp RhodiumLinter.res.js src-{{target_version}}/RhodiumLinter.js; \
+        echo "  Copied RhodiumLinter.js"; \
     fi
 
 # Create XPI package
@@ -315,8 +320,8 @@ install-zotero:
         if [ -n "$$PROFILE" ]; then \
             EXT_DIR="$$PROFILE_BASE/$$PROFILE/extensions"; \
             mkdir -p "$$EXT_DIR"; \
-            cp build/zoterho-template-{{target_version}}.xpi "$$EXT_DIR/make-it-red@example.com.xpi"; \
-            echo "Installed to: $$EXT_DIR/make-it-red@example.com.xpi"; \
+            cp build/zoterho-template-{{target_version}}.xpi "$$EXT_DIR/zoterho-template@metadatstastician.art.xpi"; \
+            echo "Installed to: $$EXT_DIR/zoterho-template@metadatstastician.art.xpi"; \
             echo ""; \
             echo "Restart Zotero to load the plugin."; \
         else \
