@@ -180,7 +180,7 @@ This project enforces the Hyperpolymath Rhodium Standard:
 * **No TypeScript** - Use ReScript instead
 * **No npm/yarn/pnpm/bun** - Use Deno only
 * **No Makefiles** - Use justfile
-* **HTTPS only** - No HTTP URLs
+* **HTTPS only** - No mixed content with insecure  URLs
 * **No hardcoded secrets**
 
 Policy is enforced by:
