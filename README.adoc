@@ -1,9 +1,9 @@
 = Make It Rhodium - ZoteRho (Rhodium-template) 
 
-image:https://img.shields.io/badge/license-Palimpsest--MPL--1.0-purple.svg[Palimpsest-MPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"] image:https://img.shields.io/badge/philosophy-Palimpsest-purple.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
+image:[Palimpsest-MPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"] 
 Jonathan D. A. Jewell
 v2.0, 2025-11-12
-:hp-repo-name: make-it-red-rhodium-standard
+:hp-repo-name: make-it-rhodium-standard
 :hp-gitlab-user: hyperpolymath
 :hp-zotero-version: 7+
 :toc: left
